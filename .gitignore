@@ -1,0 +1,11 @@
+build/
+install/
+log/
+src/
+__pycache__/
+*.pyc
+Unity project/Library/
+Unity project/Logs/
+.DS_Store
+*.tmp
+*.log
