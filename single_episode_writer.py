@@ -7,7 +7,8 @@ import time
 
 from pickle import loads
 from collections import defaultdict
-from moviepy.editor import ImageSequenceClip
+
+from moviepy.video.io.ImageSequenceClip import ImageSequenceClip
 
 class EpisodeWriter(object):
     def __init__(self, data_dir, task, close_width=0, open_width=0.07, frequency=20, version='1.0.0', date=None, operator=None):
@@ -131,6 +132,19 @@ class EpisodeWriter(object):
             images = [img[:,:,::-1] for img in v]
             video = ImageSequenceClip(images, fps=self.frequency)
             video.write_videofile(os.path.join(self.video_dir, k)+'.mp4', fps=self.frequency, logger=None)
-        with open(self.json_path,'w',encoding='utf-8') as jsonf:
-            jsonf.write(json.dumps(self.data, indent=2, ensure_ascii=False))
         
+        class NumpyEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                if isinstance(obj, (np.float32, np.float64)):
+                    return float(obj)
+                if isinstance(obj, (np.int32, np.int64)):
+                    return int(obj)
+                return super().default(obj)
+
+        
+        with open(self.json_path,'w',encoding='utf-8') as jsonf:
+            # jsonf.write(json.dumps(self.data, indent=2, ensure_ascii=False))
+            json.dump(self.data, jsonf, indent=2, ensure_ascii=False, cls=NumpyEncoder)
+
