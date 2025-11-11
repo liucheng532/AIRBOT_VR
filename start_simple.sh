@@ -39,6 +39,8 @@ echo ""
 # 启动TCP桥接器（后台运行）
 echo "🚀 启动TCP到ROS2桥接器..."
 python3 tcp_to_ros2_bridge.py &
+# python3 tcp_to_ros2_bridge_original.py &
+# python3 test_tcp.py &
 BRIDGE_PID=$!
 sleep 2
 
@@ -53,6 +55,8 @@ echo "✅ TCP桥接器运行中 (PID: $BRIDGE_PID)"
 echo "🚀 启动VR机械臂控制节点..."
 python3 -m airbot_vr.vr_arm &
 VR_ARM_PID=$!
+# python3 vr_arm.py &
+# VR_ARM_PID=$!
 sleep 2
 
 # 检查VR控制节点是否启动成功

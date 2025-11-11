@@ -10,9 +10,11 @@ from std_msgs.msg import Float64MultiArray
 
 from airbot_py.arm import AIRBOTPlay
 
-from .control.servo import Arm
-from .vr import CoordinateConverter, VRTeleopRos2
-from .utils import print_green, print_yellow, print_red
+import sys
+sys.path.append('/airbot_vr_py/airbot_vr_python_sdk')
+from airbot_vr.control.servo import Arm
+from airbot_vr.vr import CoordinateConverter, VRTeleopRos2
+from airbot_vr.utils import print_green, print_yellow, print_red
 
 UPDATE_INTERVAL = 1 / 250
 
@@ -54,28 +56,28 @@ class VRArm(Node):
 
         self._init_sub()
 
-        # self.arm = Arm()
-        # self.arm.init()
+        self.arm = Arm()
+        self.arm.init()
         self.pose = self.INIT_POSE.copy()
 
         # Arm initialization
-        class DummyArm:
-            def __init__(self):
-                self._count = 0
-            def init(self):
-                print_yellow("[DummyArm] 模拟机械臂已初始化")
-            def update_arm(self, pose):
-                self._count += 1
-                if self._count % 100 == 0:
-                    print_yellow(f"[DummyArm] 更新位姿 {self._count} 次")
-            def update_eef(self, width):
-                pass
-            def get_end_pose(self):
-                trans = np.array([0.3, 0.0, 0.2])
-                quat = np.array([0, 0, 0, 1])
-                return (trans, quat)
+        # class DummyArm:
+        #     def __init__(self):
+        #         self._count = 0
+        #     def init(self):
+        #         print_yellow("[DummyArm] 模拟机械臂已初始化")
+        #     def update_arm(self, pose):
+        #         self._count += 1
+        #         if self._count % 100 == 0:
+        #             print_yellow(f"[DummyArm] 更新位姿 {self._count} 次")
+        #     def update_eef(self, width):
+        #         pass
+        #     def get_end_pose(self):
+        #         trans = np.array([0.3, 0.0, 0.2])
+        #         quat = np.array([0, 0, 0, 1])
+        #         return (trans, quat)
 
-        self.arm = DummyArm()
+        # self.arm = DummyArm()
 
 
 
@@ -109,7 +111,7 @@ class VRArm(Node):
         print_yellow(f"reset target: {self.INIT_POSE[:3, 3]}")
         self.pose = self.INIT_POSE.copy()
         self.arm.update_arm(self.pose)
-        time.sleep(0.5)
+        # time.sleep(3.0)
         # 重置初始化标志
         self.arm_init = False
         self.trans_init = None
@@ -117,6 +119,8 @@ class VRArm(Node):
         self.arm_init_pose = None
 
     def teleopProcess(self):
+
+
         # 左手柄X键 重置位置
         if self.teleop.vr_cmd.data[10] > self.teleop.THRESHOLD:
             print_yellow("start reset, please wait...")
@@ -191,7 +195,8 @@ class VRArm(Node):
                     self.arm.update_arm(T_left)
 
                 except Exception as e:
-                    print_red(f"臂控制出错: {str(e)}\n")
+                    # print_red(f"臂控制出错: {str(e)}\n")
+                    self.throttled_print(f"臂控制出错: {str(e)}\n", interval=1.0, color_fn=print_red)
 
             else:
                 # 停止同步后重新计算偏置
