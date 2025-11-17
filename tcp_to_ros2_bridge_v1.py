@@ -38,7 +38,7 @@ class TCPToROS2Bridge(Node):
             "RTrig": False,
             "PauseL": False,
             "PauseR": False,
-            "EXIT": False
+            "EXIT": False,
         }
         
         # 位置和旋转数据
@@ -59,6 +59,29 @@ class TCPToROS2Bridge(Node):
         
         self.get_logger().info(f"TCP到ROS2桥接器已启动，监听端口: {self.PORT}")
 
+    def throttled_log(self, level, msg, interval=5.0):
+        now = time.time()
+        if not hasattr(self, '_last_log_time'):
+            self._last_log_time = {}
+        
+        # ✅ 统一匹配关键词，忽略端口号变化
+        key = None
+        if "Quest3客户端连接" in msg:
+            key = "Quest3客户端连接"
+        elif "断开连接" in msg:
+            key = "Quest3客户端断开"
+        elif "TCP服务器错误" in msg:
+            key = "TCP服务器错误"
+        else:
+            key = msg  # 其他按原样节流
+        
+        last_time = self._last_log_time.get(key, 0)
+        if now - last_time > interval:
+            getattr(self.get_logger(), level)(msg)
+            self._last_log_time[key] = now
+
+
+
     def start_tcp_server(self):
         """启动TCP服务器"""
         self.server_thread = threading.Thread(target=self.tcp_server_loop, daemon=True)
@@ -76,7 +99,8 @@ class TCPToROS2Bridge(Node):
         while True:
             try:
                 client_socket, client_address = server_socket.accept()
-                self.get_logger().info(f"Quest3客户端连接: {client_address}")
+                # self.get_logger().info(f"Quest3客户端连接: {client_address}")
+                self.throttled_log('info', f"Quest3客户端连接: {client_address}", interval=3.0)
                 
                 client_thread = threading.Thread(
                     target=self.handle_client,
@@ -86,7 +110,8 @@ class TCPToROS2Bridge(Node):
                 client_thread.start()
                 
             except Exception as e:
-                self.get_logger().error(f"TCP服务器错误: {e}")
+                # self.get_logger().error(f"TCP服务器错误: {e}")
+                self.throttled_log('error', f"TCP服务器错误: {e}", interval=3.0)
 
     def handle_client(self, client_socket, client_address):
         """处理客户端连接"""
@@ -107,41 +132,65 @@ class TCPToROS2Bridge(Node):
                         if message:
                             self.parse_quest3_data(message)
                     except Exception as e:
-                        self.get_logger().warn(f"解析数据错误: {e}")
+                        # self.get_logger().warn(f"解析数据错误: {e}")
+                        self.throttled_log('warn', f"解析数据错误: {e}", interval=3.0)
+                        
                         
         except Exception as e:
-            self.get_logger().error(f"客户端 {client_address} 错误: {e}")
+            # self.get_logger().error(f"客户端 {client_address} 错误: {e}")
+            self.throttled_log('error', f"客户端 {client_address} 错误: {e}", interval=3.0)
         finally:
             client_socket.close()
-            self.get_logger().info(f"Quest3客户端 {client_address} 断开连接")
+            # self.get_logger().info(f"Quest3客户端 {client_address} 断开连接")
+            self.throttled_log('info', f"Quest3客户端 {client_address} 断开连接", interval=3.0)
+
 
     def parse_quest3_data(self, message):
-        """解析Quest3应用发送的数据"""
-        # 解析按键状态
-        if "=" in message:
+        """解析Quest3应用发送的数据（兼容 Unity 端逻辑）"""
+        message = message.strip()
+
+        if "=" not in message:
+            return
+
+        # ✅ 1. 单条短按消息 (PauseL / PauseR / EXIT)
+        if message.startswith(("PauseL", "PauseR", "EXIT")):
+            key, value = message.split('=', 1)
+            key = key.strip()
+            value = value.strip()
+            if value == 'T' and key in self.button_state:
+                # 按下瞬间设为 True
+                self.button_state[key] = True
+                print(f"→ {key} 按下")
+
+                # 🔁 自动在 0.3 秒后清零（Unity 不会发送 F）
+                def reset_key():
+                    self.button_state[key] = False
+                    print(f"→ {key} 自动松开（超时清零）")
+
+                threading.Timer(0.3, reset_key).start()
+            return
+
+        # ✅ 2. 多键状态消息（含 LGrip/RGrip/LTrig/RTrig + 位姿）
+        if ";" in message:
             parts = message.split(';')
             for part in parts:
-                if '=' in part:
-                    key, value = part.split('=', 1)
-                    key = key.strip()
-                    value = value.strip()
-                    
-                    if key == "LGrip":
-                        self.button_state["LGrip"] = (value == 'T')
-                    elif key == "RGrip":
-                        self.button_state["RGrip"] = (value == 'T')
-                    elif key == "LTrig":
-                        self.button_state["LTrig"] = (value == 'T')
-                    elif key == "RTrig":
-                        self.button_state["RTrig"] = (value == 'T')
-                    elif key == "PauseL":
-                        self.button_state["PauseL"] = (value == 'T')
-                    elif key == "PauseR":
-                        self.button_state["PauseR"] = (value == 'T')
-                    elif key == "EXIT":
-                        self.button_state["EXIT"] = (value == 'T')
-        
-        # 解析位置数据
+                if '=' not in part:
+                    continue
+                key, value = part.split('=', 1)
+                key = key.strip()
+                value = value.strip()
+
+                if key not in self.button_state:
+                    continue
+
+                state = (value == 'T')
+                if self.button_state[key] != state:
+                    self.button_state[key] = state
+                    if state:
+                        print(f"→ {key} 按下")
+                    else:
+                        print(f"→ {key} 松开")
+
         pos_matches = self.pos_pattern.findall(message)
         for hand, pos_str in pos_matches:
             try:
@@ -172,30 +221,31 @@ class TCPToROS2Bridge(Node):
             except ValueError:
                 pass
 
+
     def publish_ros_data(self):
         """发布ROS2数据（兼容原有vr_arm.py的格式）"""
         
         # 构建/vr_controller话题数据（12个浮点数）
         # 按照原有系统的按键映射：
-        # [0] 右手柄A键 -> 用RGrip代替（开始控制）
-        # [1] 右手柄B键 -> 用EXIT代替（停止控制）
+        # [0] 右手柄A键 -PauseR
+        # [1] 右手柄B键 -> meiyong
         # [2-5] 摇杆数据（暂未使用）
         # [6] 左手柄前扳机 -> LTrig
         # [7] 右手柄前扳机 -> RTrig
         # [8] 左手柄侧方中指扳机 -> LGrip（夹爪控制）
-        # [9] 右手柄侧方中指扳机（暂未使用）
+        # [9] 右手柄侧方中指扳机 RGrip
         # [10] 左手柄X键 -> PauseL（重置）
-        # [11] 左手柄Y键 -> EXIT
+        # [11] 左手柄Y键 
         
         vr_controller_msg = Float32MultiArray()
         vr_controller_data = [
-            1.0 if self.button_state["RGrip"] else 0.0,   # [0] 开始控制
-            1.0 if self.button_state["EXIT"] else 0.0,    # [1] 停止控制
+            1.0 if self.button_state["PauseR"] else 0.0,   # [0] 开始控制
+            0.0,   # 
             0.0, 0.0, 0.0, 0.0,                           # [2-5] 摇杆
             1.0 if self.button_state["LTrig"] else 0.0,   # [6] 左手前扳机
             1.0 if self.button_state["RTrig"] else 0.0,   # [7] 右手前扳机
             1.0 if self.button_state["LGrip"] else 0.0,   # [8] 夹爪控制
-            0.0,                                           # [9] 保留
+            1.0 if self.button_state["RGrip"] else 0.0,   # [9]
             1.0 if self.button_state["PauseL"] else 0.0,  # [10] 重置
             1.0 if self.button_state["EXIT"] else 0.0,    # [11] 退出
         ]

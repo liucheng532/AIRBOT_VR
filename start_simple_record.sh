@@ -59,7 +59,7 @@ echo "✅ TCP桥接器运行中 (PID: $BRIDGE_PID)"
 # 启动VR控制节点（后台运行）
 echo "🚀 启动VR机械臂控制节点..."
 cd /airbot_vr_py
-python3 vr_arm_record_new2.py &
+python3 vr_arm_record_v3.py &
 VR_ARM_PID=$!
 sleep 2
 

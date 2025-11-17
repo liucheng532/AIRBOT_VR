@@ -1,0 +1,33 @@
+{
+  "episode_dir": "./dataset/episode_2025-11-14_01-37-10",
+  "timestamp": "2025-11-14 01:37:19",
+  "frequency": 30,
+  "total_frames": 235,
+  "gripper_open_width": 0.07,
+  "gripper_close_width": 0.0,
+  "camera_config": [
+    {
+      "name": "main",
+      "has_rgb": true,
+      "has_depth": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "wrist",
+      "has_rgb": true,
+      "has_depth": false,
+      "width": 640,
+      "height": 480
+    }
+  ],
+  "robot_state_keys": [
+    "joint_pos",
+    "eef_pos",
+    "eef_quat",
+    "gripper",
+    "frame_id"
+  ],
+  "rgb_format": "jpg",
+  "depth_format": "png16"
+}
