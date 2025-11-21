@@ -1,0 +1,768 @@
+{
+  "info": {
+    "version": "1.0.0",
+    "datetime": "2025-11-03-21:58",
+    "operator": "someone",
+    "frequency": 20,
+    "close_width": 0,
+    "open_width": 0.07,
+    "episode_dir": "data_teleop/episode_0006",
+    "episode_id": 6,
+    "task": "teleop",
+    "total_steps": 16
+  },
+  "data": [
+    {
+      "idx": 0,
+      "colors": {
+        "rgb_main": "colors/000000_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000000_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000000_depth_main.npy"
+      },
+      "timestamp": 1762178293.313019,
+      "states": {
+        "eef_pose": [
+          [
+            0.28628,
+            0.0,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 1,
+      "colors": {
+        "rgb_main": "colors/000001_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000001_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000001_depth_main.npy"
+      },
+      "timestamp": 1762178293.3462994,
+      "states": {
+        "eef_pose": [
+          [
+            0.28628,
+            0.0,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 2,
+      "colors": {
+        "rgb_main": "colors/000002_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000002_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000002_depth_main.npy"
+      },
+      "timestamp": 1762178293.3812106,
+      "states": {
+        "eef_pose": [
+          [
+            0.2887847659873962,
+            -0.0002244114875793457,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 3,
+      "colors": {
+        "rgb_main": "colors/000003_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000003_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000003_depth_main.npy"
+      },
+      "timestamp": 1762178293.412109,
+      "states": {
+        "eef_pose": [
+          [
+            0.2887847659873962,
+            -0.0002244114875793457,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 4,
+      "colors": {
+        "rgb_main": "colors/000004_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000004_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000004_depth_main.npy"
+      },
+      "timestamp": 1762178293.4588225,
+      "states": {
+        "eef_pose": [
+          [
+            0.29127135255813597,
+            -0.0005738437175750732,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 5,
+      "colors": {
+        "rgb_main": "colors/000005_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000005_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000005_depth_main.npy"
+      },
+      "timestamp": 1762178293.5090604,
+      "states": {
+        "eef_pose": [
+          [
+            0.2937366006660461,
+            -0.0010475367307662964,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 6,
+      "colors": {
+        "rgb_main": "colors/000006_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000006_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000006_depth_main.npy"
+      },
+      "timestamp": 1762178293.5590606,
+      "states": {
+        "eef_pose": [
+          [
+            0.2961754141139984,
+            -0.0016444921493530273,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 7,
+      "colors": {
+        "rgb_main": "colors/000007_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000007_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000007_depth_main.npy"
+      },
+      "timestamp": 1762178293.6088698,
+      "states": {
+        "eef_pose": [
+          [
+            0.2985814748096466,
+            -0.0023632049560546875,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 8,
+      "colors": {
+        "rgb_main": "colors/000008_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000008_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000008_depth_main.npy"
+      },
+      "timestamp": 1762178293.6589072,
+      "states": {
+        "eef_pose": [
+          [
+            0.30094765999794004,
+            -0.003201529383659363,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 9,
+      "colors": {
+        "rgb_main": "colors/000009_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000009_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000009_depth_main.npy"
+      },
+      "timestamp": 1762178293.7087727,
+      "states": {
+        "eef_pose": [
+          [
+            0.303270065574646,
+            -0.004158124327659607,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 10,
+      "colors": {
+        "rgb_main": "colors/000010_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000010_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000010_depth_main.npy"
+      },
+      "timestamp": 1762178293.7588449,
+      "states": {
+        "eef_pose": [
+          [
+            0.3055396614360809,
+            -0.0052292197942733765,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 11,
+      "colors": {
+        "rgb_main": "colors/000011_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000011_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000011_depth_main.npy"
+      },
+      "timestamp": 1762178293.8087423,
+      "states": {
+        "eef_pose": [
+          [
+            0.3077543316173553,
+            -0.006413787603378296,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 12,
+      "colors": {
+        "rgb_main": "colors/000012_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000012_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000012_depth_main.npy"
+      },
+      "timestamp": 1762178293.8588536,
+      "states": {
+        "eef_pose": [
+          [
+            0.309906834154129,
+            -0.007708132266998291,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 13,
+      "colors": {
+        "rgb_main": "colors/000013_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000013_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000013_depth_main.npy"
+      },
+      "timestamp": 1762178293.9088743,
+      "states": {
+        "eef_pose": [
+          [
+            0.31199159601211546,
+            -0.009108945727348328,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 14,
+      "colors": {
+        "rgb_main": "colors/000014_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000014_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000014_depth_main.npy"
+      },
+      "timestamp": 1762178293.9588223,
+      "states": {
+        "eef_pose": [
+          [
+            0.3140046832847595,
+            -0.010613679885864258,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    },
+    {
+      "idx": 15,
+      "colors": {
+        "rgb_main": "colors/000015_rgb_main.jpg",
+        "rgb_wrist_0": "colors/000015_rgb_wrist_0.jpg"
+      },
+      "depths": {
+        "depth_main": "depths/000015_depth_main.npy"
+      },
+      "timestamp": 1762178294.0088072,
+      "states": {
+        "eef_pose": [
+          [
+            0.315937244682312,
+            -0.012215614318847656,
+            0.21368
+          ],
+          [
+            0.0,
+            0.0,
+            0.0,
+            1.0
+          ]
+        ]
+      },
+      "actions": {
+        "grip": false
+      },
+      "main_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 606.3302001953125,
+        "fy": 605.3949584960938,
+        "ppx": 324.9854736328125,
+        "ppy": 245.81124877929688,
+        "model": 2
+      },
+      "wrist_intrinsics": {
+        "width": 640,
+        "height": 480,
+        "fx": 611.9434814453125,
+        "fy": 610.9423828125,
+        "ppx": 335.6299133300781,
+        "ppy": 247.69174194335938,
+        "model": 2
+      }
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "info": {
+    "version": "1.0.0",
+    "datetime": "2025-11-03-21:43",
+    "operator": "someone",
+    "frequency": 20,
+    "close_width": 0,
+    "open_width": 0.07,
+    "episode_dir": "data_teleop/episode_0001",
+    "episode_id": 1,
+    "task": "teleop",
+    "total_steps": 0
+  },
+  "data": []
+}

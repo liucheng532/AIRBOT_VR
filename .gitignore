@@ -9,7 +9,10 @@ Unity project/Logs/
 .DS_Store
 *.tmp
 *.log
-zzj_test/
+# zzj_test/
 dataset/
 .vscode/
 rollout/
+
+
+
