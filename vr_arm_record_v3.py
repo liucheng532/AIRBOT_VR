@@ -18,8 +18,8 @@ import cv2
 from async_episode_writer import AsyncEpisodeWriter
 
 # from Armsim import DummyArm
-
-sys.path.append("/home/krystal/AIRBOT_VR/airbot_vr_python_sdk")
+from twist_client import WebSocketTwistClient 
+sys.path.append("airbot_vr_python_sdk")
 from airbot_vr.control.servo import Arm  # type: ignore
 from airbot_vr.vr import CoordinateConverter, VRTeleopRos2  # type: ignore
 from airbot_vr.utils import print_green, print_yellow, print_red  # type: ignore
@@ -54,6 +54,7 @@ class VRArm(Node):
     quat_init = None
     arm_init_pose = None
 
+
     def __init__(self, freq: int, record_freq: int):
         super().__init__("vr_node")
 
@@ -66,13 +67,35 @@ class VRArm(Node):
 
         self._init_sub()
 
+        # class DummyArm:
+        #     def __init__(self):
+        #         self._count = 0
+        #     def init(self):
+        #         print_yellow("[DummyArm] 模拟机械臂已初始化")
+        #     def update_arm(self, pose):
+        #         self._count += 1
+        #         if self._count % 100 == 0:
+        #             print_yellow(f"[DummyArm] 更新位姿 {self._count} 次")
+        #     def update_eef(self, width):
+        #         pass
+        #     def get_end_pose(self):
+        #         trans = np.array([0.3, 0.0, 0.2])
+        #         quat = np.array([0, 0, 0, 1])
+        #         return (trans, quat)
+
         # self.arm = DummyArm()
         self.arm = Arm()
         self.arm.init()
         self.pose = self.INIT_POSE.copy()
 
-        # self.imu_manager = IMUManager("ws://10.192.1.2:5000", "SF_TRON1A_278")
-        # self.imu_manager.start()
+
+        self.ws = WebSocketTwistClient(
+            ws_url="ws://10.192.1.2:5000",
+            accid="SF_TRON1A_278",
+            rate_hz=50,  # 提高发送频率到50Hz
+        )
+        self.processed_data = {"x": 0.0, "y": 0.0, "z": 0.0}
+        self.ws.start()
 
         # ----------------- 数据录制相关初始化 ----------------- #
         self.recording = False
@@ -109,8 +132,8 @@ class VRArm(Node):
 
     # ----------------- 相机线程 ----------------- #
     def camera_loop(self):
-        MAIN_SERIAL = "943222073615"  # 主相机 A（RGB + Depth）
-        WRIST_SERIAL = "317222075228"  # 腕相机 B（RGB）
+        MAIN_SERIAL = "317222075228"  # 主相机 A（RGB + Depth）
+        WRIST_SERIAL = "943222073615"  # 腕相机 B（RGB）
 
         main_pipe = None
         wrist_pipe = None
@@ -238,6 +261,23 @@ class VRArm(Node):
                 self._last_record_time = now
 
                 if self.main_color is not None and self.main_depth is not None and self.wrist_color is not None:
+
+
+                    # 获取机械臂末端位姿
+                    # imu = self.imu_manager.get_latest_imu()
+                    # print(self.processed_data)
+                    robot_state = {
+                        "joint_pos": self.arm.robot.get_joint_pos(),
+                        "eef_pos": self.arm.robot.get_end_pose()[0],
+                        "eef_quat": self.arm.robot.get_end_pose()[1],
+                        "gripper": float(self.tctr_gripper),
+                        "robot_speed": self.processed_data, 
+                        # "imu_euler": imu["euler"],
+                        # "imu_acc": imu["acc"],
+                        # "imu_gyro": imu["gyro"],
+                        # "imu_quat": imu["quat"],
+                    }
+
                     camera_data = {
                         "main": {
                             "rgb": self.main_color,
@@ -245,22 +285,6 @@ class VRArm(Node):
                         },
                         "wrist": {"rgb": self.wrist_color},
                     }
-
-                    # 获取机械臂末端位姿
-                    # imu = self.imu_manager.get_latest_imu()
-                    robot_state = {
-                        "joint_pos": self.arm.robot.get_joint_pos(),
-                        "eef_pos": self.arm.robot.get_end_pose()[0],
-                        "eef_quat": self.arm.robot.get_end_pose()[1],
-                        "gripper": float(self.tctr_gripper),
-                    }
-
-                    # robot_state = {
-                    #     # "imu_euler": imu["euler"],
-                    #     # "imu_acc": imu["acc"],
-                    #     # "imu_gyro": imu["gyro"],
-                    #     # "imu_quat": imu["quat"],
-                    # }
 
                     self.writer.add_item(camera_data, robot_state)
 
@@ -288,6 +312,19 @@ class VRArm(Node):
             print_yellow("stop Arm control")
 
         if self.startflag:
+
+            # 检查左摇杆和右摇杆是否按下并传递给 WebSocketTwistClient
+            lx = self.teleop.vr_cmd.data[3]  # 左摇杆 x
+            ly = self.teleop.vr_cmd.data[2]  # 左摇杆 y
+            rx = self.teleop.vr_cmd.data[4]  # 右摇杆 x
+            # 如果任何摇杆有输入，更新 WebSocketTwistClient
+            if lx != 0.0 or ly != 0.0 or rx != 0.0:
+                self.processed_data = self.ws.update_cmd_from_vr(lx,ly,rx)
+                # print(self.processed_data)
+            else:
+            # 没有输入时，进行平滑停止
+                self.processed_data = self.ws.update_cmd_from_vr(0.0, 0.0, 0.0)
+
             # 左臂控制  左手柄前扳机
             if self.teleop.vr_cmd.data[6] > self.teleop.THRESHOLD:
 
@@ -371,13 +408,34 @@ class VRArm(Node):
                 print(f"    Right[{i}] = {value:.4f}")
 
     # ----------------- 析构：确保相机线程退出 ----------------- #
+    # def __del__(self):
+    #     try:
+    #         self._cam_stop.set()
+    #         if hasattr(self, "_cam_thread"):
+    #             self._cam_thread.join(timeout=1)
+    #     except Exception:
+    #         pass
     def __del__(self):
         try:
+            # 确保相机线程停止
             self._cam_stop.set()
             if hasattr(self, "_cam_thread"):
                 self._cam_thread.join(timeout=1)
+            
+            # 确保 WebSocket 连接停止
+            self.ws.stop()
+
         except Exception:
             pass
+
+    # 你也可以单独调用 `destroy` 方法来处理资源释放
+    def destroy(self):
+        # 确保 WebSocket 和相机线程都停止
+        self.ws.stop()
+        self._cam_stop.set()
+        if hasattr(self, "_cam_thread"):
+            self._cam_thread.join(timeout=1)
+        super().destroy_node()
 
 
 if __name__ == "__main__":
@@ -403,12 +461,14 @@ if __name__ == "__main__":
             print_yellow("Recording still active, stopping writer...")
             vr_arm_node.writer.stop()
 
-        print_yellow("Stopping camera thread...")
-        vr_arm_node._cam_stop.set()
-        if hasattr(vr_arm_node, "_cam_thread"):
-            vr_arm_node._cam_thread.join(timeout=2)
+        # print_yellow("Stopping camera thread...")
+        # vr_arm_node._cam_stop.set()
+        # if hasattr(vr_arm_node, "_cam_thread"):
+        #     vr_arm_node._cam_thread.join(timeout=2)
 
-        vr_arm_node.destroy_node()
+        print_yellow("Stopping camera thread and WebSocket connection...")
+        vr_arm_node.destroy()  # 调用 destroy 方法
+
         rclpy.shutdown()
         spin_thread.join(timeout=2)
         print_green("✅ 程序已安全退出。")

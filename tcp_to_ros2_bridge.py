@@ -38,7 +38,7 @@ class TCPToROS2Bridge(Node):
             "RTrig": False,
             "PauseL": False,
             "PauseR": False,
-            "b": False,
+            "B": False,
             "EXIT": False,
         }
 
@@ -51,6 +51,11 @@ class TCPToROS2Bridge(Node):
         # 正则表达式
         self.pos_pattern = re.compile(r"([LR])Pos:\s*\(([^)]+)\)")
         self.rot_pattern = re.compile(r"([LR])Rot:\s*\(([^)]+)\)")
+        self.joy_pattern = re.compile(r"([LR])Joy=\(([^)]+)\)")
+
+        # 摇杆数值
+        self.left_joy = [0.0, 0.0]
+        self.right_joy = [0.0, 0.0]
 
         # 启动TCP服务器
         self.start_tcp_server()
@@ -143,18 +148,14 @@ class TCPToROS2Bridge(Node):
     def parse_quest3_data(self, message):
         """解析Quest3应用发送的数据（兼容 Unity 端逻辑）"""
         message = message.strip()
-        # print(message)
-        if message == 'b':
-            message = 'b=T'
+
         if "=" not in message:
             return
 
         # ✅ 1. 单条短按消息 (PauseL / PauseR / EXIT)
-        if message.startswith(("PauseL", "PauseR", "b", "EXIT")):
+        if message.startswith(("PauseL", "PauseR", "B", "EXIT")):
             key, value = message.split("=", 1)
             key = key.strip()
-            # if key == "b":
-            #     print('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx')
             value = value.strip()
             if value == "T" and key in self.button_state:
                 # 按下瞬间设为 True
@@ -166,7 +167,7 @@ class TCPToROS2Bridge(Node):
                     self.button_state[key] = False
                     print(f"→ {key} 自动松开（超时清零）")
 
-                threading.Timer(0.3, reset_key).start()
+                threading.Timer(0.2, reset_key).start()
             return
 
         # ✅ 2. 多键状态消息（含 LGrip/RGrip/LTrig/RTrig + 位姿）
@@ -220,6 +221,20 @@ class TCPToROS2Bridge(Node):
             except ValueError:
                 pass
 
+        # 解析摇杆数据
+        joy_matches = self.joy_pattern.findall(message)
+        for hand, joy_str in joy_matches:
+            # print(hand, joy_str)
+            try:
+                xy = [float(x.strip()) for x in joy_str.split(",")]
+                if len(xy) == 2:
+                    if hand == "L":
+                        self.left_joy = xy
+                    elif hand == "R":
+                        self.right_joy = xy
+            except ValueError:
+                pass
+
     def publish_ros_data(self):
         """发布ROS2数据（兼容原有vr_arm.py的格式）"""
 
@@ -238,11 +253,11 @@ class TCPToROS2Bridge(Node):
         vr_controller_msg = Float32MultiArray()
         vr_controller_data = [
             1.0 if self.button_state["PauseR"] else 0.0,  # [0] 右手柄A键
-            1.0 if self.button_state["b"] else 0.0,  # [1] 右手柄B键
-            0.0,
-            0.0,
-            0.0,
-            0.0,  # [2-5] 摇杆
+            1.0 if self.button_state["B"] else 0.0,  # [1] 右手柄B键
+            self.left_joy[0],  # [2] 左摇杆 x
+            self.left_joy[1],  # [3] 左摇杆 y
+            self.right_joy[0],  # [4] 右摇杆 x
+            self.right_joy[1],  # [5] 右摇杆 y
             1.0 if self.button_state["LTrig"] else 0.0,  # [6] 左前扳机
             1.0 if self.button_state["RTrig"] else 0.0,  # [7] 右前扳机
             1.0 if self.button_state["LGrip"] else 0.0,  # [8] 左侧扳机

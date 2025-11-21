@@ -6,11 +6,26 @@ import datetime
 import threading
 import numpy as np
 import queue
+import mediapy
 
 
 class AsyncEpisodeWriter:
     def __init__(
-        self, data_root, camera_config, freq=30, gripper_open=0.07, gripper_close=0.0, max_queue=200, make_preview=False
+        self, data_root, camera_config,
+        task="pick up the carton",
+        # task="pick up the banana",
+        # task="pick up the bottle",
+        # task="throw the carton into the blue trash can",
+        # task="throw the banana into the green trash can",
+        # task="throw the bottle into the blue trash can",
+        # task="pick up the kettle",
+        # task="place the kettle under the water tap",
+        # task="turn on the water tap",
+        # task="turn off the water tap",
+        # task="pick up the kettle with water",
+        # task="water the flower",
+        # task="place the kettle on the table",
+        freq=30, gripper_open=0.07, gripper_close=0.0, max_queue=200, make_preview=True, preview_downsample_rate=3
     ):  # ⭐ 你可以选择是否生成视频预览
         self.data_root = data_root
         self.camera_config = camera_config
@@ -19,6 +34,9 @@ class AsyncEpisodeWriter:
         self.gripper_open = gripper_open
         self.gripper_close = gripper_close
         self.make_preview = make_preview  # ⭐ 控制是否生成视频
+        self.preview_downsample_rate = preview_downsample_rate  # ⭐ 预览视频降采样率
+
+        self.task = task
 
         self.queue = queue.Queue(maxsize=max_queue)
 
@@ -35,8 +53,16 @@ class AsyncEpisodeWriter:
 
     # ----------------------------- START EPISODE ----------------------------- #
     def start(self):
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        self.episode_dir = os.path.join(self.data_root, f"episode_{timestamp}")
+        # 统计 data_root 中现有的 episode 文件夹数量
+        existing_episodes = 0
+        if os.path.exists(self.data_root):
+            for item in os.listdir(self.data_root):
+                item_path = os.path.join(self.data_root, item)
+                if os.path.isdir(item_path) and item.startswith("episode_"):
+                    existing_episodes += 1
+        
+        # 使用现有 episode 数量来命名新文件夹
+        self.episode_dir = os.path.join(self.data_root, f"episode_{existing_episodes}")
         os.makedirs(self.episode_dir, exist_ok=True)
 
         for cfg in self.camera_config:
@@ -99,12 +125,12 @@ class AsyncEpisodeWriter:
 
     # --------------------------- VIDEO STITCHING --------------------------- #
     def _make_preview_video(self):
-        """多相机预览视频，深度读取改为 PNG"""
+        """多相机预览视频，深度读取改为 PNG，低质量MP4格式，支持降采样"""
         if not self.make_preview:
             print("[AsyncWriter] ⏭ Skip preview video.")
             return
 
-        print("[AsyncWriter] 🎬 Building multi-camera preview video...")
+        print(f"[AsyncWriter] 🎬 Building multi-camera preview video (downsample rate: {self.preview_downsample_rate})...")
 
         rgb_cams = [c["name"] for c in self.camera_config if c.get("has_rgb", False)]
         depth_cams = [c["name"] for c in self.camera_config if c.get("has_depth", False)]
@@ -134,17 +160,15 @@ class AsyncEpisodeWriter:
         final_width = max(total_rgb_width, total_depth_width)
         final_height = H + (pad if len(depth_cams) > 0 else 0) + (H if len(depth_cams) > 0 else 0)
 
-        output_path = os.path.join(self.episode_dir, "preview.avi")
-        fourcc = cv2.VideoWriter_fourcc(*"MJPG")  # type: ignore
-        writer = cv2.VideoWriter(output_path, fourcc, float(self.freq), (final_width, final_height))
+        # MP4格式，低质量设置
+        episode_name = os.path.basename(self.episode_dir)
+        output_path = os.path.join(self.episode_dir, f"{episode_name}_preview.mp4")
+        # 降采样后的帧率
+        preview_fps = float(self.freq) / self.preview_downsample_rate
 
-        if not writer.isOpened():
-            print("[AsyncWriter] ❌ VideoWriter failed.")
-            return
-
-        # 拼接视频
-        for frame_id in range(self.frame_id):
-
+        # 拼接视频（降采样），收集所有帧
+        frames = []
+        for frame_id in range(0, self.frame_id, self.preview_downsample_rate):
             # ---- RGB row ----
             rgb_row = np.zeros((H, total_rgb_width, 3), dtype=np.uint8)
             x = 0
@@ -179,10 +203,15 @@ class AsyncEpisodeWriter:
             else:
                 final = rgb_row
 
-            writer.write(final)
+            # 将 BGR 转换为 RGB（OpenCV 使用 BGR，mediapy 需要 RGB）
+            final_rgb = cv2.cvtColor(final, cv2.COLOR_BGR2RGB)
+            frames.append(final_rgb)
 
-        writer.release()
-        print(f"[AsyncWriter] 🎉 Preview saved: {output_path}")
+        # 使用 mediapy 写入视频
+        frame_count = len(frames)
+        if frame_count > 0:
+            mediapy.write_video(output_path, frames, fps=preview_fps)
+        print(f"[AsyncWriter] 🎉 Preview saved: {output_path} ({frame_count} frames at {preview_fps:.1f} fps)")
 
     # --------------------------- MISSING FRAME CHECK --------------------------- #
     def _check_missing_frames(self):
@@ -229,6 +258,7 @@ class AsyncEpisodeWriter:
         # meta.json
         meta = {
             "episode_dir": self.episode_dir,
+            "task": self.task,
             "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "frequency": self.freq,
             "total_frames": self.frame_id,

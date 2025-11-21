@@ -1,0 +1,34 @@
+{
+  "episode_dir": "./rollout/episode_0",
+  "task": "pick up the banana",
+  "timestamp": "2025-11-20 15:18:37",
+  "frequency": 30,
+  "total_frames": 312,
+  "gripper_open_width": 0.07,
+  "gripper_close_width": 0.0,
+  "camera_config": [
+    {
+      "name": "main",
+      "has_rgb": true,
+      "has_depth": true,
+      "width": 640,
+      "height": 480
+    },
+    {
+      "name": "wrist",
+      "has_rgb": true,
+      "has_depth": false,
+      "width": 640,
+      "height": 480
+    }
+  ],
+  "robot_state_keys": [
+    "joint_pos",
+    "eef_pos",
+    "eef_quat",
+    "gripper",
+    "frame_id"
+  ],
+  "rgb_format": "jpg",
+  "depth_format": "png16"
+}

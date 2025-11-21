@@ -10,3 +10,5 @@ Unity project/Logs/
 *.tmp
 *.log
 zzj_test/
+dataset/
+.vscode/
