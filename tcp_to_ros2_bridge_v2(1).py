@@ -103,8 +103,8 @@ class TCPToROS2Bridge(Node):
         while True:
             try:
                 client_socket, client_address = server_socket.accept()
-                self.get_logger().info(f"Quest3客户端连接: {client_address}")
-                # self.throttled_log("info", f"Quest3客户端连接: {client_address}", interval=3.0)
+                # self.get_logger().info(f"Quest3客户端连接: {client_address}")
+                self.throttled_log("info", f"Quest3客户端连接: {client_address}", interval=3.0)
 
                 client_thread = threading.Thread(
                     target=self.handle_client, args=(client_socket, client_address), daemon=True
@@ -112,8 +112,8 @@ class TCPToROS2Bridge(Node):
                 client_thread.start()
 
             except Exception as e:
-                self.get_logger().error(f"TCP服务器错误: {e}")
-                # self.throttled_log("error", f"TCP服务器错误: {e}", interval=3.0)
+                # self.get_logger().error(f"TCP服务器错误: {e}")
+                self.throttled_log("error", f"TCP服务器错误: {e}", interval=3.0)
 
     def handle_client(self, client_socket, client_address):
         """处理客户端连接"""
@@ -227,6 +227,7 @@ class TCPToROS2Bridge(Node):
             # print(hand, joy_str)
             try:
                 xy = [float(x.strip()) for x in joy_str.split(",")]
+                # print(xy)
                 if len(xy) == 2:
                     if hand == "L":
                         self.left_joy = xy

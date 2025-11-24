@@ -67,24 +67,24 @@ class VRArm(Node):
 
         self._init_sub()
 
-        # class DummyArm:
-        #     def __init__(self):
-        #         self._count = 0
-        #     def init(self):
-        #         print_yellow("[DummyArm] 模拟机械臂已初始化")
-        #     def update_arm(self, pose):
-        #         self._count += 1
-        #         if self._count % 100 == 0:
-        #             print_yellow(f"[DummyArm] 更新位姿 {self._count} 次")
-        #     def update_eef(self, width):
-        #         pass
-        #     def get_end_pose(self):
-        #         trans = np.array([0.3, 0.0, 0.2])
-        #         quat = np.array([0, 0, 0, 1])
-        #         return (trans, quat)
+        class DummyArm:
+            def __init__(self):
+                self._count = 0
+            def init(self):
+                print_yellow("[DummyArm] 模拟机械臂已初始化")
+            def update_arm(self, pose):
+                self._count += 1
+                if self._count % 100 == 0:
+                    print_yellow(f"[DummyArm] 更新位姿 {self._count} 次")
+            def update_eef(self, width):
+                pass
+            def get_end_pose(self):
+                trans = np.array([0.3, 0.0, 0.2])
+                quat = np.array([0, 0, 0, 1])
+                return (trans, quat)
 
-        # self.arm = DummyArm()
-        self.arm = Arm()
+        self.arm = DummyArm()
+        # self.arm = Arm()
         self.arm.init()
         self.pose = self.INIT_POSE.copy()
 
@@ -111,8 +111,8 @@ class VRArm(Node):
         self.writer = AsyncEpisodeWriter(
             data_root="./dataset",
             camera_config=[
-                {"name": "main", "has_rgb": True, "has_depth": True, "width": 640, "height": 480},
-                {"name": "wrist", "has_rgb": True, "has_depth": False, "width": 640, "height": 480},
+                # {"name": "main", "has_rgb": True, "has_depth": True, "width": 640, "height": 480},
+                # {"name": "wrist", "has_rgb": True, "has_depth": False, "width": 640, "height": 480},
             ],
             freq=record_freq,
             gripper_open=0.07,
@@ -267,10 +267,10 @@ class VRArm(Node):
                     # imu = self.imu_manager.get_latest_imu()
                     # print(self.processed_data)
                     robot_state = {
-                        "joint_pos": self.arm.robot.get_joint_pos(),
-                        "eef_pos": self.arm.robot.get_end_pose()[0],
-                        "eef_quat": self.arm.robot.get_end_pose()[1],
-                        "gripper": float(self.tctr_gripper),
+                        # "joint_pos": self.arm.robot.get_joint_pos(),
+                        # "eef_pos": self.arm.robot.get_end_pose()[0],
+                        # "eef_quat": self.arm.robot.get_end_pose()[1],
+                        # "gripper": float(self.tctr_gripper),
                         "robot_speed": self.processed_data, 
                         # "imu_euler": imu["euler"],
                         # "imu_acc": imu["acc"],
@@ -279,11 +279,11 @@ class VRArm(Node):
                     }
 
                     camera_data = {
-                        "main": {
-                            "rgb": self.main_color,
-                            "depth": self.main_depth,
-                        },
-                        "wrist": {"rgb": self.wrist_color},
+                        # "main": {
+                        #     "rgb": self.main_color,
+                        #     "depth": self.main_depth,
+                        # },
+                        # "wrist": {"rgb": self.wrist_color},
                     }
 
                     self.writer.add_item(camera_data, robot_state)
