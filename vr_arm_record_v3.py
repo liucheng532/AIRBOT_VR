@@ -54,6 +54,8 @@ class VRArm(Node):
     quat_init = None
     arm_init_pose = None
 
+    data_dir = "./dataset_1126"
+
 
     def __init__(self, freq: int, record_freq: int):
         super().__init__("vr_node")
@@ -67,31 +69,32 @@ class VRArm(Node):
 
         self._init_sub()
 
-        class DummyArm:
-            def __init__(self):
-                self._count = 0
-            def init(self):
-                print_yellow("[DummyArm] 模拟机械臂已初始化")
-            def update_arm(self, pose):
-                self._count += 1
-                if self._count % 100 == 0:
-                    print_yellow(f"[DummyArm] 更新位姿 {self._count} 次")
-            def update_eef(self, width):
-                pass
-            def get_end_pose(self):
-                trans = np.array([0.3, 0.0, 0.2])
-                quat = np.array([0, 0, 0, 1])
-                return (trans, quat)
+        # class DummyArm:
+        #     def __init__(self):
+        #         self._count = 0
+        #     def init(self):
+        #         print_yellow("[DummyArm] 模拟机械臂已初始化")
+        #     def update_arm(self, pose):
+        #         self._count += 1
+        #         if self._count % 100 == 0:
+        #             print_yellow(f"[DummyArm] 更新位姿 {self._count} 次")
+        #     def update_eef(self, width):
+        #         pass
+        #     def get_end_pose(self):
+        #         trans = np.array([0.3, 0.0, 0.2])
+        #         quat = np.array([0, 0, 0, 1])
+        #         return (trans, quat)
 
-        self.arm = DummyArm()
-        # self.arm = Arm()
+        # self.arm = DummyArm()
+        self.arm = Arm()
         self.arm.init()
         self.pose = self.INIT_POSE.copy()
 
 
         self.ws = WebSocketTwistClient(
             ws_url="ws://10.192.1.2:5000",
-            accid="SF_TRON1A_278",
+            # accid="SF_TRON1A_278",
+            accid="SF_TRON1A_404",
             rate_hz=50,  # 提高发送频率到50Hz
         )
         self.processed_data = {"x": 0.0, "y": 0.0, "z": 0.0}
@@ -109,10 +112,10 @@ class VRArm(Node):
 
         # EpisodeWriter，两个相机
         self.writer = AsyncEpisodeWriter(
-            data_root="./dataset",
+            data_root=self.data_dir,
             camera_config=[
-                # {"name": "main", "has_rgb": True, "has_depth": True, "width": 640, "height": 480},
-                # {"name": "wrist", "has_rgb": True, "has_depth": False, "width": 640, "height": 480},
+                {"name": "main", "has_rgb": True, "has_depth": False, "width": 720, "height": 1280},
+                {"name": "wrist", "has_rgb": True, "has_depth": False, "width": 640, "height": 480},
             ],
             freq=record_freq,
             gripper_open=0.07,
@@ -121,7 +124,6 @@ class VRArm(Node):
 
         # 相机帧缓冲
         self.main_color = None  # A: 主相机 RGB
-        self.main_depth = None  # A: 主相机 Depth
         self.wrist_color = None  # B: 腕部 RGB
 
         # 相机线程控制
@@ -132,7 +134,7 @@ class VRArm(Node):
 
     # ----------------- 相机线程 ----------------- #
     def camera_loop(self):
-        MAIN_SERIAL = "317222075228"  # 主相机 A（RGB + Depth）
+        MAIN_SERIAL = "317222075228"  # 主相机 A（RGB）
         WRIST_SERIAL = "943222073615"  # 腕相机 B（RGB）
 
         main_pipe = None
@@ -143,9 +145,7 @@ class VRArm(Node):
             main_pipe = rs.pipeline()
             main_cfg = rs.config()
             main_cfg.enable_device(MAIN_SERIAL)
-            main_cfg.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
-            main_cfg.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
-            align = rs.align(rs.stream.color)
+            main_cfg.enable_stream(rs.stream.color, 1280, 720, rs.format.bgr8, 30)
             main_pipe.start(main_cfg)
 
             # 腕相机 B
@@ -160,13 +160,10 @@ class VRArm(Node):
             while not self._cam_stop.is_set():
                 # 主视角（阻塞等待）
                 main_frames = main_pipe.wait_for_frames()
-                aligned = align.process(main_frames)
-                c = aligned.get_color_frame()
-                d = aligned.get_depth_frame()
+                c = main_frames.get_color_frame()
 
-                if c and d:
+                if c:
                     self.main_color = np.asanyarray(c.get_data()).copy()
-                    self.main_depth = np.asanyarray(d.get_data()).copy()
 
                 # 腕部（非阻塞）
                 wrist_frames = wrist_pipe.poll_for_frames()
@@ -260,18 +257,18 @@ class VRArm(Node):
             if now - self._last_record_time >= self.record_interval:
                 self._last_record_time = now
 
-                if self.main_color is not None and self.main_depth is not None and self.wrist_color is not None:
+                if self.main_color is not None and self.wrist_color is not None:
 
 
                     # 获取机械臂末端位姿
                     # imu = self.imu_manager.get_latest_imu()
                     # print(self.processed_data)
                     robot_state = {
-                        # "joint_pos": self.arm.robot.get_joint_pos(),
-                        # "eef_pos": self.arm.robot.get_end_pose()[0],
-                        # "eef_quat": self.arm.robot.get_end_pose()[1],
-                        # "gripper": float(self.tctr_gripper),
-                        "robot_speed": self.processed_data, 
+                        "joint_pos": self.arm.robot.get_joint_pos(),
+                        "eef_pos": self.arm.robot.get_end_pose()[0],
+                        "eef_quat": self.arm.robot.get_end_pose()[1],
+                        "gripper": float(self.tctr_gripper),
+                        "robot_speed": self.processed_data,
                         # "imu_euler": imu["euler"],
                         # "imu_acc": imu["acc"],
                         # "imu_gyro": imu["gyro"],
@@ -279,11 +276,10 @@ class VRArm(Node):
                     }
 
                     camera_data = {
-                        # "main": {
-                        #     "rgb": self.main_color,
-                        #     "depth": self.main_depth,
-                        # },
-                        # "wrist": {"rgb": self.wrist_color},
+                        "main": {
+                            "rgb": self.main_color,
+                        },
+                        "wrist": {"rgb": self.wrist_color},
                     }
 
                     self.writer.add_item(camera_data, robot_state)
@@ -320,7 +316,7 @@ class VRArm(Node):
             # 如果任何摇杆有输入，更新 WebSocketTwistClient
             if lx != 0.0 or ly != 0.0 or rx != 0.0:
                 self.processed_data = self.ws.update_cmd_from_vr(lx,ly,rx)
-                # print(self.processed_data)
+                print(self.processed_data)
             else:
             # 没有输入时，进行平滑停止
                 self.processed_data = self.ws.update_cmd_from_vr(0.0, 0.0, 0.0)

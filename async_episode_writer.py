@@ -12,12 +12,12 @@ import mediapy
 class AsyncEpisodeWriter:
     def __init__(
         self, data_root, camera_config,
-        task="pick up the carton",
-        # task="pick up the banana",
+        # task="pick up the carton",
+        # task="pick up the banana peel",
         # task="pick up the bottle",
         # task="throw the carton into the blue trash can",
         # task="throw the banana into the green trash can",
-        # task="throw the bottle into the blue trash can",
+        task="throw the bottle into the blue trash can",
         # task="pick up the kettle",
         # task="place the kettle under the water tap",
         # task="turn on the water tap",
@@ -125,7 +125,7 @@ class AsyncEpisodeWriter:
 
     # --------------------------- VIDEO STITCHING --------------------------- #
     def _make_preview_video(self):
-        """多相机预览视频，深度读取改为 PNG，低质量MP4格式，支持降采样"""
+        """多相机预览视频，仅使用rgb_cams，垂直拼接，以最宽图像宽度为帧宽度"""
         if not self.make_preview:
             print("[AsyncWriter] ⏭ Skip preview video.")
             return
@@ -133,32 +133,26 @@ class AsyncEpisodeWriter:
         print(f"[AsyncWriter] 🎬 Building multi-camera preview video (downsample rate: {self.preview_downsample_rate})...")
 
         rgb_cams = [c["name"] for c in self.camera_config if c.get("has_rgb", False)]
-        depth_cams = [c["name"] for c in self.camera_config if c.get("has_depth", False)]
 
-        if len(rgb_cams) == 0 and len(depth_cams) == 0:
-            print("[AsyncWriter] ⚠️ No RGB or Depth for preview.")
+        if len(rgb_cams) == 0:
+            print("[AsyncWriter] ⚠️ No RGB cameras for preview.")
             return
 
-        # First frame
-        first_cam = rgb_cams[0] if rgb_cams else depth_cams[0]
-        first_img_path = os.path.join(self.episode_dir, f"rgb_{first_cam}", "0.jpg")
-        if not os.path.exists(first_img_path):
-            print("[AsyncWriter] ⚠️ Cannot find first frame.")
+        # 找到第一帧，确定每个相机的分辨率，并找到最大宽度
+        max_width = 0
+        cam_shapes = {}
+        for cam in rgb_cams:
+            img_path = os.path.join(self.episode_dir, f"rgb_{cam}", "0.jpg")
+            if os.path.exists(img_path):
+                img = cv2.imread(img_path)
+                if img is not None:
+                    h, w = img.shape[:2]
+                    cam_shapes[cam] = (h, w)
+                    max_width = max(max_width, w)
+        
+        if max_width == 0:
+            print("[AsyncWriter] ⚠️ Cannot find first frame or determine image sizes.")
             return
-
-        first_img = cv2.imread(first_img_path)
-        if first_img is None:
-            print("[AsyncWriter] ❌ Cannot read preview frame.")
-            return
-
-        H, W = first_img.shape[:2]
-        pad = 10
-
-        total_rgb_width = len(rgb_cams) * (W + pad) - pad
-        total_depth_width = len(depth_cams) * (W + pad) - pad
-
-        final_width = max(total_rgb_width, total_depth_width)
-        final_height = H + (pad if len(depth_cams) > 0 else 0) + (H if len(depth_cams) > 0 else 0)
 
         # MP4格式，低质量设置
         episode_name = os.path.basename(self.episode_dir)
@@ -169,39 +163,34 @@ class AsyncEpisodeWriter:
         # 拼接视频（降采样），收集所有帧
         frames = []
         for frame_id in range(0, self.frame_id, self.preview_downsample_rate):
-            # ---- RGB row ----
-            rgb_row = np.zeros((H, total_rgb_width, 3), dtype=np.uint8)
-            x = 0
+            # 收集所有rgb图像，不resize较小宽度的图像，而是放在max_width的画布上
+            processed_imgs = []
             for cam in rgb_cams:
                 img_path = os.path.join(self.episode_dir, f"rgb_{cam}", f"{frame_id}.jpg")
-                img = cv2.imread(img_path) if os.path.exists(img_path) else None
-                if img is None:
-                    img = np.zeros((H, W, 3), dtype=np.uint8)
-                rgb_row[:, x : x + W] = img
-                x += W + pad
-
-            # ---- Depth row ----
-            if depth_cams:
-                depth_row = np.zeros((H, total_depth_width, 3), dtype=np.uint8)
-                x = 0
-                for cam in depth_cams:
-                    depth_path = os.path.join(self.episode_dir, f"depth_{cam}", f"{frame_id}.png")
-                    if os.path.exists(depth_path):
-                        # ⭐ PNG16 读取
-                        depth = cv2.imread(depth_path, cv2.IMREAD_UNCHANGED)
-                        depth_vis = cv2.convertScaleAbs(depth, alpha=0.03)  # type: ignore
-                        depth_vis = cv2.applyColorMap(depth_vis, cv2.COLORMAP_JET)
+                if os.path.exists(img_path):
+                    img = cv2.imread(img_path)
+                    if img is not None:
+                        h, w = img.shape[:2]
+                        # 不resize，保持原始尺寸，放在max_width的画布上（左对齐）
+                        canvas = np.zeros((h, max_width, 3), dtype=np.uint8)
+                        canvas[:, :w] = img
+                        processed_imgs.append(canvas)
                     else:
-                        depth_vis = np.zeros((H, W, 3), dtype=np.uint8)
+                        # 如果读取失败，使用第一帧的尺寸创建黑色图像
+                        h, w = cam_shapes.get(cam, (480, 640))
+                        canvas = np.zeros((h, max_width, 3), dtype=np.uint8)
+                        processed_imgs.append(canvas)
+                else:
+                    # 如果文件不存在，使用第一帧的尺寸创建黑色图像
+                    h, w = cam_shapes.get(cam, (480, 640))
+                    canvas = np.zeros((h, max_width, 3), dtype=np.uint8)
+                    processed_imgs.append(canvas)
 
-                    depth_row[:, x : x + W] = depth_vis
-                    x += W + pad
-
-                final = np.zeros((final_height, final_width, 3), dtype=np.uint8)
-                final[0:H, 0:total_rgb_width] = rgb_row
-                final[H + pad : H + pad + H, 0:total_depth_width] = depth_row
+            # 垂直拼接所有图像
+            if processed_imgs:
+                final = np.vstack(processed_imgs)
             else:
-                final = rgb_row
+                final = np.zeros((480, max_width, 3), dtype=np.uint8)
 
             # 将 BGR 转换为 RGB（OpenCV 使用 BGR，mediapy 需要 RGB）
             final_rgb = cv2.cvtColor(final, cv2.COLOR_BGR2RGB)

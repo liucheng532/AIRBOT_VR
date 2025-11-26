@@ -13,7 +13,7 @@ class TwistFromVR(Node):
         # -------------------------
         self.ws = WebSocketTwistClient(
             ws_url="ws://10.192.1.2:5000",
-            accid="SF_TRON1A_278",
+            accid="SF_TRON1A_404",
             rate_hz=50,  # 提高发送频率到50Hz
         )
         self.ws.start()
@@ -37,9 +37,12 @@ class TwistFromVR(Node):
         data = msg.data
         if len(data) < 6:
             return
-
+        lx = data[3]  # 左摇杆 x
+        ly = data[2]  # 左摇杆 y
+        rx = data[4]  # 右摇杆 x
+        print(data)
         # 直接将摇杆数据传递给 WebSocketTwistClient 进行处理
-        self.ws.update_cmd_from_vr(data)
+        self.ws.update_cmd_from_vr(lx,ly,rx)
 
 
         # print(f"[VR] Data sent to WebSocket: {data}")
